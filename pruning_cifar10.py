@@ -19,7 +19,7 @@ model_names = sorted(name for name in models.__dict__
 
 parser = argparse.ArgumentParser(description='Trains ResNeXt on CIFAR or ImageNet',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('data_path', type=str, help='Path to dataset')
+parser.add_argument('data_path', type=str,default='./datasetpath', help='Path to dataset')
 parser.add_argument('--dataset', type=str, choices=['cifar10', 'cifar100', 'imagenet', 'svhn', 'stl10'],
                     help='Choose between Cifar10/100 and ImageNet.')
 parser.add_argument('--arch', metavar='ARCH', default='resnet18', choices=model_names,
@@ -36,7 +36,7 @@ parser.add_argument('--gammas', type=float, nargs='+', default=[0.1, 0.1],
                     help='LR is multiplied by gamma on schedule, number of gammas should be equal to schedule')
 # Checkpoints
 parser.add_argument('--print_freq', default=200, type=int, metavar='N', help='print frequency (default: 200)')
-parser.add_argument('--save_path', type=str, default='./', help='Folder to save checkpoints and log.')
+parser.add_argument('--save_path', type=str, default='./svae_for_ck', help='Folder to save checkpoints and log.')
 parser.add_argument('--resume', default='', type=str, metavar='PATH', help='path to latest checkpoint (default: none)')
 parser.add_argument('--start_epoch', default=0, type=int, metavar='N', help='manual epoch number (useful on restarts)')
 parser.add_argument('--evaluate', dest='evaluate', action='store_true', help='evaluate model on validation set')
@@ -158,7 +158,7 @@ def main():
         if os.path.isfile(args.pretrain_path):
             print_log("=> loading pretrain model '{}'".format(args.pretrain_path), log)
         else:
-            dir = '/data/yahe/cifar10_base/'
+            dir = './pretrain/cifar10_base/'
             # dir = '/data/uts521/yang/progress/cifar10_base/'
             whole_path = dir + 'cifar10_' + args.arch + '_base'
             args.pretrain_path = whole_path + '/checkpoint.pth.tar'
@@ -290,7 +290,7 @@ def train(train_loader, model, criterion, optimizer, epoch, log, m):
         data_time.update(time.time() - end)
 
         if args.use_cuda:
-            target = target.cuda(async=True)
+            target = target.cuda(async_=True)
             input = input.cuda()
         input_var = torch.autograd.Variable(input)
         target_var = torch.autograd.Variable(target)
@@ -343,7 +343,7 @@ def validate(val_loader, model, criterion, log):
 
     for i, (input, target) in enumerate(val_loader):
         if args.use_cuda:
-            target = target.cuda(async=True)
+            target = target.cuda(async_=True)
             input = input.cuda()
         input_var = torch.autograd.Variable(input, volatile=True)
         target_var = torch.autograd.Variable(target, volatile=True)
