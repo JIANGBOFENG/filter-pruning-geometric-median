@@ -38,19 +38,19 @@ class RecorderMeter(object):
     self.epoch_accuracy= np.zeros((self.total_epoch, 2), dtype=np.float32) # [epoch, train/val]
     self.epoch_accuracy= self.epoch_accuracy
 
-  def update(self, idx, train_loss, train_acc, val_loss, val_acc):
+  def update(self, idx, train_loss, train_acc, val_loss, val_acc):#idx是每个epoch的索引
     assert idx >= 0 and idx < self.total_epoch, 'total_epoch : {} , but update with the {} index'.format(self.total_epoch, idx)
     self.epoch_losses  [idx, 0] = train_loss
     self.epoch_losses  [idx, 1] = val_loss
     self.epoch_accuracy[idx, 0] = train_acc
     self.epoch_accuracy[idx, 1] = val_acc
     self.current_epoch = idx + 1
-    return self.max_accuracy(False) == val_acc
+    return self.max_accuracy(False) == val_acc#返回一个二值变量，如果val_acc和目前为止最大的val_acc相同，则返回true
 
   def max_accuracy(self, istrain):
     if self.current_epoch <= 0: return 0
-    if istrain: return self.epoch_accuracy[:self.current_epoch, 0].max()
-    else:       return self.epoch_accuracy[:self.current_epoch, 1].max()
+    if istrain: return self.epoch_accuracy[:self.current_epoch, 0].max()#return 目前为止最大的train_acc
+    else:       return self.epoch_accuracy[:self.current_epoch, 1].max()#return 目前为止最大的val_acc
   
   def plot_curve(self, save_path):
     title = 'the accuracy/loss curve of train/val'

@@ -19,7 +19,7 @@ model_names = sorted(name for name in models.__dict__
 
 parser = argparse.ArgumentParser(description='Trains ResNeXt on CIFAR or ImageNet',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('data_path', type=str,default='./datasetpath', help='Path to dataset')
+parser.add_argument('data_path', type=str,default="./datasetpath", help='Path to dataset')
 parser.add_argument('--dataset', type=str, choices=['cifar10', 'cifar100', 'imagenet', 'svhn', 'stl10'],
                     help='Choose between Cifar10/100 and ImageNet.')
 parser.add_argument('--arch', metavar='ARCH', default='resnet18', choices=model_names,
@@ -46,7 +46,7 @@ parser.add_argument('--workers', type=int, default=2, help='number of data loadi
 # random seed
 parser.add_argument('--manualSeed', type=int, help='manual seed')
 # compress rate
-parser.add_argument('--rate_norm', type=float, default=0.9, help='the remaining ratio of pruning based on Norm')
+parser.add_argument('--rate_norm', type=float, default=0.9, help='the remaining ratio of pruning based on Norm')#
 parser.add_argument('--rate_dist', type=float, default=0.1, help='the reducing ratio of pruning based on Distance')
 
 parser.add_argument('--layer_begin', type=int, default=1, help='compress layer of model')
@@ -92,6 +92,7 @@ def main():
     print_log("Pretrain path: {}".format(args.pretrain_path), log)
     print_log("Dist type: {}".format(args.dist_type), log)
 
+    print_log("this is gpu index:{}".format(torch.cuda.current_device()),log)
     # Init dataset
     if not os.path.isdir(args.data_path):
         os.makedirs(args.data_path)
@@ -149,7 +150,7 @@ def main():
 
     optimizer = torch.optim.SGD(net.parameters(), state['learning_rate'], momentum=state['momentum'],
                                 weight_decay=state['decay'], nesterov=True)
-
+    #pdb.set_trace()
     if args.use_cuda:
         net.cuda()
         criterion.cuda()
@@ -158,9 +159,9 @@ def main():
         if os.path.isfile(args.pretrain_path):
             print_log("=> loading pretrain model '{}'".format(args.pretrain_path), log)
         else:
-            dir = './pretrain/cifar10_base/'
+            dir = './pretrain_model/cifar10/baseline_without_pruning/'
             # dir = '/data/uts521/yang/progress/cifar10_base/'
-            whole_path = dir + 'cifar10_' + args.arch + '_base'
+            whole_path = dir + 'cifar10_' + args.arch + '_baseline'+'/cifar10_'+ args.arch+'_base1'
             args.pretrain_path = whole_path + '/checkpoint.pth.tar'
             print_log("Pretrain path: {}".format(args.pretrain_path), log)
         pretrain = torch.load(args.pretrain_path)
@@ -196,28 +197,29 @@ def main():
         print('function took %0.3f ms' % ((time2 - time1) * 1000.0))
         return
 
-    m = Mask(net)
-    m.init_length()
+    m = Mask(net)#创建一个mask
+    m.init_length()#得到该模型所有层的参数信息
     print("-" * 10 + "one epoch begin" + "-" * 10)
     print("remaining ratio of pruning : Norm is %f" % args.rate_norm)
     print("reducing ratio of pruning : Distance is %f" % args.rate_dist)
+    #剩余部分的比率，从这个地方看，应该是先按照norm，保留rate_norm比例的参数，然后按照dist剪掉rate_dist部分
     print("total remaining ratio is %f" % (args.rate_norm - args.rate_dist))
-
+    
     val_acc_1, val_los_1 = validate(test_loader, net, criterion, log)
 
     print(" accu before is: %.3f %%" % val_acc_1)
 
     m.model = net
 
-    m.init_mask(args.rate_norm, args.rate_dist, args.dist_type)
+    m.init_mask(args.rate_norm, args.rate_dist, args.dist_type)#初始化mask，获取codebook
     #    m.if_zero()
     m.do_mask()
     m.do_similar_mask()
-    net = m.model
+    net = m.model#加载按照mask更新权重后的网络
     #    m.if_zero()
     if args.use_cuda:
         net = net.cuda()
-    val_acc_2, val_los_2 = validate(test_loader, net, criterion, log)
+    val_acc_2, val_los_2 = validate(test_loader, net, criterion, log)#测试一下看看
     print(" accu after is: %s %%" % val_acc_2)
 
     # Main loop
@@ -235,22 +237,23 @@ def main():
         print_log(
             '\n==>>{:s} [Epoch={:03d}/{:03d}] {:s} [learning_rate={:6.4f}]'.format(time_string(), epoch, args.epochs,
                                                                                    need_time, current_learning_rate) \
-            + ' [Best : Accuracy={:.2f}, Error={:.2f}]'.format(recorder.max_accuracy(False),
-                                                               100 - recorder.max_accuracy(False)), log)
+            + ' [Best : Accuracy={:.2f}, Error={:.2f}]'.format(recorder.max_accuracy(False),#目前为止最大的val__acc
+                                                               100 - recorder.max_accuracy(False)), log)#目前为止最小的error
 
         # train for one epoch
         train_acc, train_los = train(train_loader, net, criterion, optimizer, epoch, log, m)
 
         # evaluate on validation set
         val_acc_1, val_los_1 = validate(test_loader, net, criterion, log)
-        if epoch % args.epoch_prune == 0 or epoch == args.epochs - 1:
-            m.model = net
-            m.if_zero()
+        if epoch % args.epoch_prune == 0 or epoch == args.epochs - 1:#如果到需要剪枝的epoch，则进行剪枝
+            m.model = net#把模型导入mask里
+            m.if_zero()#看有多少零
             m.init_mask(args.rate_norm, args.rate_dist, args.dist_type)
             m.do_mask()
             m.do_similar_mask()
-            m.if_zero()
-            net = m.model
+            m.if_zero()#看看零还在不在了
+            net = m.model#把剪枝后的模型返回给net
+        #注意：这种剪枝方法是软剪枝，可以不断恢复的，并不是剪掉之后就不用了。    
             if args.use_cuda:
                 net = net.cuda()
 
@@ -264,7 +267,7 @@ def main():
             'state_dict': net,
             'recorder': recorder,
             'optimizer': optimizer.state_dict(),
-        }, is_best, args.save_path, 'checkpoint.pth.tar')
+        }, is_best, args.save_path, 'checkpoint.pth.tar')#保存本次epoch的前向模型
 
         # measure elapsed time
         epoch_time.update(time.time() - start_time)
@@ -290,7 +293,7 @@ def train(train_loader, model, criterion, optimizer, epoch, log, m):
         data_time.update(time.time() - end)
 
         if args.use_cuda:
-            target = target.cuda(async_=True)
+            target = target.cuda(non_blocking=True)
             input = input.cuda()
         input_var = torch.autograd.Variable(input)
         target_var = torch.autograd.Variable(target)
@@ -343,18 +346,21 @@ def validate(val_loader, model, criterion, log):
 
     for i, (input, target) in enumerate(val_loader):
         if args.use_cuda:
-            target = target.cuda(async_=True)
+            target = target.cuda(non_blocking=True)
             input = input.cuda()
         input_var = torch.autograd.Variable(input, volatile=True)
         target_var = torch.autograd.Variable(target, volatile=True)
 
         # compute output
         output = model(input_var)
+        print("\n"+"______________________________"+"This for debug")
         loss = criterion(output, target_var)
-
+        print(loss)
         # measure accuracy and record loss
         prec1, prec5 = accuracy(output.data, target, topk=(1, 5))
-        losses.update(loss.data[0], input.size(0))
+        print("\n"+"______________________________"+"This for debug")
+        print(prec1)
+        losses.update(loss.item(), input.size(0))
         top1.update(prec1[0], input.size(0))
         top5.update(prec5[0], input.size(0))
 
@@ -368,20 +374,21 @@ def validate(val_loader, model, criterion, log):
 def print_log(print_string, log):
     print("{}".format(print_string))
     log.write('{}\n'.format(print_string))
-    log.flush()
+    log.flush()#刷新缓冲区
 
 
 def save_checkpoint(state, is_best, save_path, filename):
     filename = os.path.join(save_path, filename)
     torch.save(state, filename)
     if is_best:
-        bestname = os.path.join(save_path, 'model_best.pth.tar')
+        bestname = os.path.join(save_path, 'model_best.pth.tar')#如果是最好的，则保存为best
         shutil.copyfile(filename, bestname)
 
 
-def adjust_learning_rate(optimizer, epoch, gammas, schedule):
+def adjust_learning_rate(optimizer, epoch, gammas, schedule):#采用LR decay方法调整学习率，在160之前是0.1，在150-225是0.01，在之后是0.001。
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
     lr = args.learning_rate
+    #Python assert（断言）用于判断一个表达式，在表达式条件为 false 的时候触发异常
     assert len(gammas) == len(schedule), "length of gammas and schedule should be equal"
     for (gamma, step) in zip(gammas, schedule):
         if (epoch >= step):
@@ -404,7 +411,8 @@ def accuracy(output, target, topk=(1,)):
 
     res = []
     for k in topk:
-        correct_k = correct[:k].view(-1).float().sum(0)
+        correct_k = correct[:k].reshape(-1).float().sum(0)
+
         res.append(correct_k.mul_(100.0 / batch_size))
     return res
 
@@ -424,38 +432,38 @@ class Mask:
         self.model_size = {}
         self.model_length = {}
         self.compress_rate = {}
-        self.distance_rate = {}
-        self.mat = {}
+        self.distance_rate = {} 
+        self.mat = {}#这个矩阵是用来存放norm的mask
         self.model = model
         self.mask_index = []
         self.filter_small_index = {}
         self.filter_large_index = {}
-        self.similar_matrix = {}
-        self.norm_matrix = {}
+        self.similar_matrix = {}#用来存放distance的mask
+        self.norm_matrix = {}#没用过，不知道这个是干啥的
 
-    def get_codebook(self, weight_torch, compress_rate, length):
+    def get_codebook(self, weight_torch, compress_rate, length):#这个函数没有用过，不知道干啥
         weight_vec = weight_torch.view(length)
         weight_np = weight_vec.cpu().numpy()
 
         weight_abs = np.abs(weight_np)
-        weight_sort = np.sort(weight_abs)
+        weight_sort = np.sort(weight_abs)#对weight进行排序，返回一个升序序列
 
-        threshold = weight_sort[int(length * (1 - compress_rate))]
-        weight_np[weight_np <= -threshold] = 1
+        threshold = weight_sort[int(length * (1 - compress_rate))]#找到最小的这些权重，然后定义第剪枝率*全部个数的值是阈值
+        weight_np[weight_np <= -threshold] = 1#好像写得不太对？按理来说应该是压缩了除以2，咋也不知道为啥
         weight_np[weight_np >= threshold] = 1
         weight_np[weight_np != 1] = 0
 
         print("codebook done")
         return weight_np
 
-    def get_filter_codebook(self, weight_torch, compress_rate, length):
+    def get_filter_codebook(self, weight_torch, compress_rate, length):#赋值给self.mat
         codebook = np.ones(length)
         if len(weight_torch.size()) == 4:
-            filter_pruned_num = int(weight_torch.size()[0] * (1 - compress_rate))
+            filter_pruned_num = int(weight_torch.size()[0] * (1 - compress_rate))#被剪枝掉的个数
             weight_vec = weight_torch.view(weight_torch.size()[0], -1)
             norm2 = torch.norm(weight_vec, 2, 1)
             norm2_np = norm2.cpu().numpy()
-            filter_index = norm2_np.argsort()[:filter_pruned_num]
+            filter_index = norm2_np.argsort()[:filter_pruned_num]#返回按照范数从小到大排列，最小的filter_pruned_num个通道的索引
             #            norm1_sort = np.sort(norm1_np)
             #            threshold = norm1_sort[int (weight_torch.size()[0] * (1-compress_rate) )]
             kernel_length = weight_torch.size()[1] * weight_torch.size()[2] * weight_torch.size()[3]
@@ -489,22 +497,36 @@ class Mask:
 
     # optimize for fast ccalculation
     def get_filter_similar(self, weight_torch, compress_rate, distance_rate, length, dist_type="l2"):
-        codebook = np.ones(length)
+        codebook = np.ones(length)#产生一个和本层权重个数相同的字典
         if len(weight_torch.size()) == 4:
-            filter_pruned_num = int(weight_torch.size()[0] * (1 - compress_rate))
-            similar_pruned_num = int(weight_torch.size()[0] * distance_rate)
-            weight_vec = weight_torch.view(weight_torch.size()[0], -1)
+            filter_pruned_num = int(weight_torch.size()[0] * (1 - compress_rate))#需要按照norm剪掉的通道数量
+            similar_pruned_num = int(weight_torch.size()[0] * distance_rate)#需要根据distance剪掉的通道数量
+            weight_vec = weight_torch.view(weight_torch.size()[0], -1)#按通道数区分开，顺序排布为w向量
 
             if dist_type == "l2" or "cos":
-                norm = torch.norm(weight_vec, 2, 1)
+                norm = torch.norm(weight_vec, 2, 1)#按通道，返回weight_vec的L2范数，dim=1即返回每个通道的L2范数，即squrt(sum(x^2))
                 norm_np = norm.cpu().numpy()
             elif dist_type == "l1":
                 norm = torch.norm(weight_vec, 1, 1)
                 norm_np = norm.cpu().numpy()
             filter_small_index = []
             filter_large_index = []
+#             ">> a = torch.randn(4, 4)
+#              >>> a
+#           tensor([[ 0.0785,  1.5267, -0.8521,  0.4065],
+#                   [ 0.1598,  0.0788, -0.0745, -1.2700],
+#                   [ 1.2208,  1.0722, -0.7064,  1.2564],
+#                   [ 0.0669, -0.2318, -0.8229, -0.9280]])
+
+
+#              >>> torch.argsort(a, dim=1)
+#           tensor([[2, 0, 3, 1],
+#                   [3, 2, 1, 0],
+#                   [2, 1, 0, 3],
+#                   [3, 2, 1, 0]])"
+#           np.argsort返回矩阵，该矩阵沿着给定维度进行排序，返回是一个在给定维度下升序序列的原索引，filter_pruned_num:表示从第N个起到最后一个,此处返回的L2范数较大的索引值。
             filter_large_index = norm_np.argsort()[filter_pruned_num:]
-            filter_small_index = norm_np.argsort()[:filter_pruned_num]
+            filter_small_index = norm_np.argsort()[:filter_pruned_num]#：filter_pruned_num表示从第0个到该数索引N-1,即较小的通道索引
 
             # # distance using pytorch function
             # similar_matrix = torch.zeros((len(filter_large_index), len(filter_large_index)))
@@ -518,28 +540,29 @@ class Mask:
             # similar_sum = torch.sum(torch.abs(similar_matrix), 0).numpy()
 
             # distance using numpy function
-            indices = torch.LongTensor(filter_large_index).cuda()
-            weight_vec_after_norm = torch.index_select(weight_vec, 0, indices).cpu().numpy()
+            indices = torch.LongTensor(filter_large_index).cuda()#获取norm较大通道的索引
+            weight_vec_after_norm = torch.index_select(weight_vec, 0, indices).cpu().numpy()#index_select按照indices在第0轴（行）进行抽取，即按照索引抽出了L2范数较大的通道向量
             # for euclidean distance
-            if dist_type == "l2" or "l1":
-                similar_matrix = distance.cdist(weight_vec_after_norm, weight_vec_after_norm, 'euclidean')
+            if dist_type == "l2" or "l1":#计算weight_vec_after_norm（较大范数的通道各个w）之间的欧氏距离，返回一个表示距离的矩阵，
+                similar_matrix = distance.cdist(weight_vec_after_norm, weight_vec_after_norm, 'euclidean')#相似矩阵
             elif dist_type == "cos":  # for cos similarity
                 similar_matrix = 1 - distance.cdist(weight_vec_after_norm, weight_vec_after_norm, 'cosine')
-            similar_sum = np.sum(np.abs(similar_matrix), axis=0)
+            similar_sum = np.sum(np.abs(similar_matrix), axis=0)#二维矩阵，行相加，
 
             # for distance similar: get the filter index with largest similarity == small distance
-            similar_large_index = similar_sum.argsort()[similar_pruned_num:]
+            similar_large_index = similar_sum.argsort()[similar_pruned_num:]#按照通道剪枝的数量排布，距离和最大的索引组
             similar_small_index = similar_sum.argsort()[:  similar_pruned_num]
             similar_index_for_filter = [filter_large_index[i] for i in similar_small_index]
-
+#           similar_index_for_filter 是一个选出来和其他filter具有较小范数距离和的filter索引组，一共有similar_pruned_num个。
             print('filter_large_index', filter_large_index)
             print('filter_small_index', filter_small_index)
             print('similar_sum', similar_sum)
             print('similar_large_index', similar_large_index)
             print('similar_small_index', similar_small_index)
             print('similar_index_for_filter', similar_index_for_filter)
-            kernel_length = weight_torch.size()[1] * weight_torch.size()[2] * weight_torch.size()[3]
+            kernel_length = weight_torch.size()[1] * weight_torch.size()[2] * weight_torch.size()[3]#每个kernel内部的权重数量
             for x in range(0, len(similar_index_for_filter)):
+                #按照选出来具有较小范数和的通道索引组的索引，把这个字典中相应索引位置的（一个kernel内部权重的个数）变为0
                 codebook[
                 similar_index_for_filter[x] * kernel_length: (similar_index_for_filter[x] + 1) * kernel_length] = 0
             print("similar index done")
@@ -552,10 +575,11 @@ class Mask:
         return x
 
     def init_length(self):
-        for index, item in enumerate(self.model.parameters()):
-            self.model_size[index] = item.size()
+        """保存 mdoel_length 数组,其中存折每一层的size大小"""
+        for index, item in enumerate(self.model.parameters()):#model.parameters()是一个迭代器，每次返回的是Weights和Bais参数的值
+            self.model_size[index] = item.size()#model_size顺序存储了每一层的大小
 
-        for index1 in self.model_size:
+        for index1 in self.model_size:#此举目的是计算每一层的大小size，存在model_length里
             for index2 in range(0, len(self.model_size[index1])):
                 if index2 == 0:
                     self.model_length[index1] = self.model_size[index1][0]
@@ -563,10 +587,10 @@ class Mask:
                     self.model_length[index1] *= self.model_size[index1][index2]
 
     def init_rate(self, rate_norm_per_layer, rate_dist_per_layer):
-        for index, item in enumerate(self.model.parameters()):
+        for index, item in enumerate(self.model.parameters()):#按照model的结构，生成一个初始rate全为1，长度和model层数相同的数组compress_rate，distance_rate[index]
             self.compress_rate[index] = 1
             self.distance_rate[index] = 1
-        for key in range(args.layer_begin, args.layer_end + 1, args.layer_inter):
+        for key in range(args.layer_begin, args.layer_end + 1, args.layer_inter):#把剪枝率赋进去，第三个是步长，range一般左闭右开
             self.compress_rate[key] = rate_norm_per_layer
             self.distance_rate[key] = rate_dist_per_layer
         # different setting for  different architecture
@@ -579,7 +603,7 @@ class Mask:
         elif args.arch == 'resnet110':
             last_index = 327
         # to jump the last fc layer
-        self.mask_index = [x for x in range(0, last_index, 3)]
+        self.mask_index = [x for x in range(0, last_index, 3)]#按照不同结构，生成mask的索引
 
     #        self.mask_index =  [x for x in range (0,330,3)]
 
@@ -587,7 +611,7 @@ class Mask:
         self.init_rate(rate_norm_per_layer, rate_dist_per_layer)
         for index, item in enumerate(self.model.parameters()):
             if index in self.mask_index:
-                # mask for norm criterion
+            # mask for norm criterion#为范数正则项制定codebook作为mask
                 self.mat[index] = self.get_filter_codebook(item.data, self.compress_rate[index],
                                                            self.model_length[index])
                 self.mat[index] = self.convert2tensor(self.mat[index])
@@ -598,7 +622,7 @@ class Mask:
                 # self.filter_small_index[index], self.filter_large_index[index] = \
                 #     self.get_filter_index(item.data, self.compress_rate[index], self.model_length[index])
 
-                # mask for distance criterion
+            # mask for distance criterion#为距离正则项制定codebook作为mask
                 self.similar_matrix[index] = self.get_filter_similar(item.data, self.compress_rate[index],
                                                                      self.distance_rate[index],
                                                                      self.model_length[index], dist_type=dist_type)
@@ -610,31 +634,32 @@ class Mask:
     def do_mask(self):
         for index, item in enumerate(self.model.parameters()):
             if index in self.mask_index:
-                a = item.data.view(self.model_length[index])
-                b = a * self.mat[index]
-                item.data = b.view(self.model_size[index])
+                a = item.data.view(self.model_length[index])#拉成一行，一维的
+                b = a * self.mat[index]#按照较小的norm的channel的索引，赋值为0
+                item.data = b.view(self.model_size[index])#重新拉成model大小
         print("mask Done")
 
     def do_similar_mask(self):
         for index, item in enumerate(self.model.parameters()):
             if index in self.mask_index:
-                a = item.data.view(self.model_length[index])
-                b = a * self.similar_matrix[index]
-                item.data = b.view(self.model_size[index])
+                a = item.data.view(self.model_length[index])#拉成一行，一维的
+                b = a * self.similar_matrix[index]#按照较小的norm的channel的索引，赋值为0
+                item.data = b.view(self.model_size[index])#重新拉成model大小
         print("mask similar Done")
 
     def do_grad_mask(self):
         for index, item in enumerate(self.model.parameters()):
             if index in self.mask_index:
-                a = item.grad.data.view(self.model_length[index])
+                a = item.grad.data.view(self.model_length[index])#取出参数梯度，排列为1列
                 # reverse the mask of model
                 # b = a * (1 - self.mat[index])
-                b = a * self.mat[index]
-                b = b * self.similar_matrix[index]
-                item.grad.data = b.view(self.model_size[index])
+                b = a * self.mat[index]#按照mask取参数梯度
+                b = b * self.similar_matrix[index]#按照distance取参数梯度
+                item.grad.data = b.view(self.model_size[index])#重新排列后放回去
         # print("grad zero Done")
 
     def if_zero(self):
+        """此操作是用来打印权重系数中非零的个数，剪枝前后打印一次，证明剪掉了零的权重"""
         for index, item in enumerate(self.model.parameters()):
             if (index in self.mask_index):
                 # if index == 0:

@@ -10,7 +10,7 @@ resnet20 54
 
 
 pruning_scratch_resnet110(){
-CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --dataset cifar10 --arch resnet110 \
+CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar-10-batches-py --dataset cifar10 --arch resnet110 \
 --save_path $2 \
 --epochs 200 \
 --schedule 1 60 120 160 \
@@ -21,7 +21,7 @@ CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --datase
 --layer_begin 0  --layer_end 324 --layer_inter 3 --epoch_prune 1
 }
 pruning_pretrain_resnet110(){
-CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --dataset cifar10 --arch resnet110 \
+CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar-10-batches-py  --dataset cifar10 --arch resnet110 \
 --save_path $2 \
 --epochs 200 \
 --schedule 1 60 120 160 \
@@ -36,7 +36,7 @@ CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --datase
 
 
 pruning_scratch_resnet56(){
-CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --dataset cifar10 --arch resnet56 \
+CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar-10-batches-py  --dataset cifar10 --arch resnet56 \
 --save_path $2 \
 --epochs 200 \
 --schedule  60 120 160 \
@@ -47,7 +47,7 @@ CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --datase
 --layer_begin 0  --layer_end 164 --layer_inter 3 --epoch_prune 1
 }
 pruning_pretrain_resnet56(){
-CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --dataset cifar10 --arch resnet56 \
+CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar-10-batches-py  --dataset cifar10 --arch resnet56 \
 --save_path $2 \
 --epochs 200 \
 --schedule 60 120 160 \
@@ -62,7 +62,7 @@ CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --datase
 
 
 pruning_scratch_resnet32(){
-CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --dataset cifar10 --arch resnet32 \
+CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar-10-batches-py  --dataset cifar10 --arch resnet32 \
 --save_path $2 \
 --epochs 200 \
 --schedule  60 120 160 \
@@ -73,7 +73,7 @@ CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --datase
 --layer_begin 0  --layer_end 90 --layer_inter 3 --epoch_prune 1
 }
 pruning_pretrain_resnet32(){
-CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --dataset cifar10 --arch resnet32 \
+CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar-10-batches-py  --dataset cifar10 --arch resnet32 \
 --save_path $2 \
 --epochs 200 \
 --schedule 60 120 160 \
@@ -88,7 +88,7 @@ CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --datase
 
 
 pruning_scratch_resnet20(){
-CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --dataset cifar10 --arch resnet20 \
+CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar-10-batches-py  --dataset cifar10 --arch resnet20 \
 --save_path $2 \
 --epochs 200 \
 --schedule  60 120 160 \
@@ -99,7 +99,7 @@ CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --datase
 --layer_begin 0  --layer_end 54 --layer_inter 3 --epoch_prune 1
 }
 pruning_pretrain_resnet20(){
-CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --dataset cifar10 --arch resnet20 \
+CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar-10-batches-py  --dataset cifar10 --arch resnet20 \
 --save_path $2 \
 --epochs 200 \
 --schedule 60 120 160 \
@@ -114,14 +114,14 @@ CUDA_VISIBLE_DEVICES=$1 python  pruning_cifar10.py  ./data/cifar.python --datase
 
 jump(){
 
-(pruning_pretrain_resnet56 0 /data/yahe/cifar_GM/pretrain_0.01/cifar10_resnet56_ratenorm1_ratedist0.4_varience1 1 0.4)&
-(pruning_pretrain_resnet56 0 /data/yahe/cifar_GM/pretrain_0.01/cifar10_resnet56_ratenorm1_ratedist0.4_varience2 1 0.4)&
-(pruning_pretrain_resnet56 0 /data/yahe/cifar_GM/pretrain_0.01/cifar10_resnet56_ratenorm1_ratedist0.4_varience3 1 0.4)&
+(pruning_pretrain_resnet56 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet56_ratenorm1_ratedist0.4_varience1 1 0.4)&
+(pruning_pretrain_resnet56 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet56_ratenorm1_ratedist0.4_varience2 1 0.4)&
+(pruning_pretrain_resnet56 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet56_ratenorm1_ratedist0.4_varience3 1 0.4)&
 
 
-(pruning_pretrain_resnet56 0 /data/yahe/cifar_GM/pretrain_0.01/cifar10_resnet56_ratenorm0.7_ratedist0.1_varience1 0.7 0.1)&
-(pruning_pretrain_resnet56 0 /data/yahe/cifar_GM/pretrain_0.01/cifar10_resnet56_ratenorm0.7_ratedist0.1_varience2 0.7 0.1)&
-(pruning_pretrain_resnet56 0 /data/yahe/cifar_GM/pretrain_0.01/cifar10_resnet56_ratenorm0.7_ratedist0.1_varience3 0.7 0.1)&
+(pruning_pretrain_resnet56 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet56_ratenorm0.7_ratedist0.1_varience1 0.7 0.1)&
+(pruning_pretrain_resnet56 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet56_ratenorm0.7_ratedist0.1_varience2 0.7 0.1)&
+(pruning_pretrain_resnet56 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet56_ratenorm0.7_ratedist0.1_varience3 0.7 0.1)&
 
 }
 
@@ -130,47 +130,47 @@ jump(){
 
 run32(){
 
-(pruning_pretrain_resnet32 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet32_ratenorm1_ratedist0.4_varience1 1 0.4)&
-(pruning_pretrain_resnet32 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet32_ratenorm1_ratedist0.4_varience2 1 0.4)&
-(pruning_pretrain_resnet32 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet32_ratenorm1_ratedist0.4_varience3 1 0.4)&
+(pruning_pretrain_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet32_ratenorm1_ratedist0.4_varience1 1 0.4)&
+(pruning_pretrain_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet32_ratenorm1_ratedist0.4_varience2 1 0.4)&
+(pruning_pretrain_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet32_ratenorm1_ratedist0.4_varience3 1 0.4)&
 
 
-(pruning_scratch_resnet32 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet32_ratenorm1_ratedist0.4_varience1 1 0.4)&
-(pruning_scratch_resnet32 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet32_ratenorm1_ratedist0.4_varience2 1 0.4)&
-(pruning_scratch_resnet32 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet32_ratenorm1_ratedist0.4_varience3 1 0.4)&
+(pruning_scratch_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet32_ratenorm1_ratedist0.4_varience1 1 0.4)&
+(pruning_scratch_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet32_ratenorm1_ratedist0.4_varience2 1 0.4)&
+(pruning_scratch_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet32_ratenorm1_ratedist0.4_varience3 1 0.4)&
 
 
 
-(pruning_pretrain_resnet32 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience1 1 0.1)&
-(pruning_pretrain_resnet32 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience2 1 0.1)&
-(pruning_pretrain_resnet32 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience3 1 0.1)&
+(pruning_pretrain_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience1 1 0.1)&
+(pruning_pretrain_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience2 1 0.1)&
+(pruning_pretrain_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience3 1 0.1)&
 
 
-(pruning_scratch_resnet32 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience1 1 0.1)&
-(pruning_scratch_resnet32 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience2 1 0.1)&
-(pruning_scratch_resnet32 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience3 1 0.1)&
+(pruning_scratch_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience1 1 0.1)&
+(pruning_scratch_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience2 1 0.1)&
+(pruning_scratch_resnet32 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet32_ratenorm0.7_ratedist0.1_varience3 1 0.1)&
 
 }
 
 run20_1(){
-(pruning_pretrain_resnet20 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet20_ratenorm1_ratedist0.4_varience1 1 0.4)&
-(pruning_pretrain_resnet20 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet20_ratenorm1_ratedist0.4_varience2 1 0.4)&
-(pruning_pretrain_resnet20 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet20_ratenorm1_ratedist0.4_varience3 1 0.4)&
+(pruning_pretrain_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet20_ratenorm1_ratedist0.4_varience1 1 0.4)&
+(pruning_pretrain_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet20_ratenorm1_ratedist0.4_varience2 1 0.4)&
+(pruning_pretrain_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet20_ratenorm1_ratedist0.4_varience3 1 0.4)&
 
 
-(pruning_scratch_resnet20 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet20_ratenorm1_ratedist0.4_varience1 1 0.4)&
-(pruning_scratch_resnet20 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet20_ratenorm1_ratedist0.4_varience2 1 0.4)&
-(pruning_scratch_resnet20 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet20_ratenorm1_ratedist0.4_varience3 1 0.4)&
+(pruning_scratch_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet20_ratenorm1_ratedist0.4_varience1 1 0.4)&
+(pruning_scratch_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet20_ratenorm1_ratedist0.4_varience2 1 0.4)&
+(pruning_scratch_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet20_ratenorm1_ratedist0.4_varience3 1 0.4)&
 }
 run20_2(){
-(pruning_pretrain_resnet20 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience1 1 0.1)&
-(pruning_pretrain_resnet20 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience2 1 0.1)&
-(pruning_pretrain_resnet20 0 /data/yahe/cifar_GM2/pretrain_0.01/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience3 1 0.1)&
+(pruning_pretrain_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience1 1 0.1)&
+#(pruning_pretrain_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience2 1 0.1)&
+#(pruning_pretrain_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/pretrain_0.01/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience3 1 0.1)&
 
 
-(pruning_scratch_resnet20 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience1 1 0.1)&
-(pruning_scratch_resnet20 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience2 1 0.1)&
-(pruning_scratch_resnet20 0 /data/yahe/cifar_GM2/scratch/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience3 1 0.1)&
+#(pruning_scratch_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience1 1 0.1)&
+#(pruning_scratch_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience2 1 0.1)&
+#(pruning_scratch_resnet20 0 ~/CAC_lunwen/FPGM/filter-pruning-geometric-median/pretrain_model/cifar10/pretraiin/scratch/cifar10_resnet20_ratenorm0.7_ratedist0.1_varience3 1 0.1)&
 }
 
 
